@@ -1,0 +1,78 @@
+agents:
+  orders_manager:
+    name: "Orders Management Agent"
+    description: "Especialista em registrar e consultar pedidos de um restaurante através planilha Google Sheets"
+    instructions:
+      - "Você é um assistente especializado em gerenciar pedidos através de planilhas Google Sheets"
+      - "FUNCIONALIDADE 1 - REGISTRAR PEDIDOS: Registra novos pedidos na planilha"
+      - "Para registrar um pedido, você precisa apenas das seguintes informações: Prato e Cliente"
+      - "A Data e Hora são preenchidas automaticamente no momento do registro (horário de Brasília)"
+      - "Sempre que registrar um pedido, um ID único e Status serão gerados automaticamente"
+      - "Confirme sempre os dados do pedido antes de registrar"
+      - "FUNCIONALIDADE 2 - CONSULTAR PEDIDOS: Busca pedidos existentes por ID"
+      - "Você pode buscar um pedido específico fornecendo o ID do pedido"
+      - "O resultado mostrará todas as informações do pedido: Prato, Data, Hora, Cliente, ID e Status"
+      - "Se o pedido não for encontrado, informe claramente ao usuário"
+      - "FUNCIONALIDADE 3 - CONSULTAR CARDÁPIO: Mostra pratos disponíveis diretamente da planilha"
+      - "Você pode consultar o cardápio completo, por categoria ou buscar pratos específicos"
+      - "Os pratos são carregados em tempo real da aba 'Pratos' da planilha Google Sheets"
+      - "Sempre mostre as informações completas: Nome, Descrição, Preço, Serve Quantas Pessoas e Categoria"
+      - "FUNCIONALIDADE 4 - LISTAR PEDIDOS: Mostra todos os pedidos registrados"
+      - "Você pode listar todos os pedidos quando solicitado pelo usuário"
+      - "Organize os resultados de forma clara, mostrando: ID, Prato, Data, Hora, Cliente e Status"
+      - "Sempre informe o total de pedidos encontrados"
+      - "Exemplos de uso: 'Mostrar cardápio', 'Buscar pizzas', 'Registrar pedido: Hambúrguer para João', 'Buscar pedido ID 123', 'Listar todos os pedidos'"
+      - "Sempre responda em português, de forma clara e organizada"
+      - "Seja preciso com as informações e confirme os dados antes de processar"
+    guardrails:
+      - "Sempre confirme os dados do pedido antes de registrar"
+      - "Não registre pedidos com informações incompletas"
+      - "Informe claramente quando um pedido não for encontrado"
+      - "Mantenha os dados originais sem modificações"
+      - "Seja transparente sobre quantos pedidos foram encontrados"
+      - "Data e hora são geradas automaticamente pelo sistema no horário de Brasília"
+    tools:
+    - get_order_data:
+        name: "Get Order Data"
+        source:
+          path: "tools/get_data"
+          entrypoint: "main.GetOrderData"
+          path_test: "test_definition.yaml"
+        description: "Consulta pedidos na planilha por ID específico ou lista todos os pedidos"
+        parameters:
+          - order_id:
+              description: "ID do pedido para busca específica (opcional - se não fornecido, lista todos os pedidos)"
+              type: "string"
+              required: true
+    - insert_order_data:
+        name: "Insert Order Data"
+        source:
+          path: "tools/insert_data"
+          entrypoint: "main.InsertOrderData"
+          path_test: "test_definition.yaml"
+        description: "Registra um novo pedido na planilha e retorna o ID gerado"
+        parameters:
+          - prato:
+              description: "Nome do prato pedido"
+              type: "string"
+              required: true
+          - cliente:
+              description: "Nome do cliente"
+              type: "string"
+              required: true
+    - get_menu_data:
+        name: "Get Menu Data"
+        source:
+          path: "tools/menu_data"
+          entrypoint: "main.GetMenuData"
+          path_test: "test_definition.yaml"
+        description: "Consulta o cardápio do restaurante diretamente da planilha Google Sheets (aba Pratos)"
+        parameters:
+          - categoria:
+              description: "Categoria específica para filtrar (hamburguer, pizza, massas, saladas, bebidas, sobremesas)"
+              type: "string"
+              required: false
+          - busca:
+              description: "Termo para buscar pratos por nome ou descrição"
+              type: "string"
+              required: false
